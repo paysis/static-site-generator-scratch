@@ -1,5 +1,5 @@
 import unittest
-from inline_markdown import split_nodes_delimiter, TextNode, TextType, extract_markdown_images, extract_markdown_links, split_nodes_image_or_link
+from inline_markdown import split_nodes_delimiter, TextNode, TextType, extract_markdown_images, extract_markdown_links, split_nodes_image_or_link, create_text_to_textnodes
 
 class TestDelimiter(unittest.TestCase):
     def test_default_given_case(self):
@@ -86,6 +86,56 @@ class TestExtractor(unittest.TestCase):
             TextNode(" and ", TextType.TEXT),
             TextNode("another alt", TextType.IMAGE, "https://penguin.com/a.jpg")
         ])
+    def test_text_to_textnodes_full(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        new_nodes = create_text_to_textnodes(text)
+        self.assertEqual(new_nodes, [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ])
+    
+    def test_text_to_textnodes_only_text(self):
+        text = "some text"
+        new_nodes = create_text_to_textnodes(text)
+        self.assertEqual(new_nodes, [
+            TextNode("some text", TextType.TEXT)
+        ])
+    
+    def test_text_to_textnodes_image_and_link(self):
+        text = "an image ![alt text](https://penguin.com) and a link [click here](https://github.com/paysis) given"
+        new_nodes = create_text_to_textnodes(text)
+        self.assertEqual(new_nodes, [
+            TextNode("an image ", TextType.TEXT),
+            TextNode("alt text", TextType.IMAGE, "https://penguin.com"),
+            TextNode(" and a link ", TextType.TEXT),
+            TextNode("click here", TextType.LINK, "https://github.com/paysis"),
+            TextNode(" given", TextType.TEXT)
+        ])
+
+    def test_text_to_textnodes_full_but_bold_in_middle(self):
+        text = "This is text with an *italic* word and a `code block` **and** an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        new_nodes = create_text_to_textnodes(text)
+        self.assertEqual(new_nodes, [
+            TextNode("This is text with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" ", TextType.TEXT),
+            TextNode("and", TextType.BOLD),
+            TextNode(" an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ])
+
 
 if __name__ == "__main__":
     unittest.main()
