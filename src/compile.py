@@ -1,5 +1,6 @@
 import shutil
 import os
+from markdown_util import generate_pages_recursive
 
 def copytree(src, dst):
     if not os.path.exists(dst):
@@ -19,6 +20,8 @@ def copytree(src, dst):
 def compile(src="./static", dst="./public"):
     shutil.rmtree(dst)
     copytree(src, dst)
+    generate_pages_recursive("content/", "template.html", "public/")
+    print("Complete!")
     
 
 if __name__ == "__main__":

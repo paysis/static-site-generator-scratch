@@ -8,7 +8,8 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             if len(old_node.text) > 0:
                 ret.append(old_node)
             continue
-        sections = old_node.text.split(delimiter, 2)
+        text = old_node.text
+        sections = text.split(delimiter, 2)
         if len(sections) > 1 and len(sections) != 3:
             raise Exception("Delimiter mismatch")
         if len(sections) == 1:
@@ -59,11 +60,22 @@ def extract_markdown_links(text):
     extracted_links = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
     return extracted_links
 
+def split_genesis_nodes_by_newline(text):
+    sections = text.split("\n")
+    sections = map(lambda x: x.strip(" "), sections)
+    sections = filter(lambda x: x != "", sections)
+    sections = map(lambda x: TextNode(f"{x}", TextType.TEXT), sections)
+    sections = list(sections)
+    return sections
+
 def create_text_to_textnodes(text):
-    genesis_node = TextNode(text.strip(" ").strip("\n").strip(" "), TextType.TEXT)
-    new_nodes = [genesis_node]
-    new_nodes = split_nodes_delimiter(new_nodes, "**", TextType.BOLD)
-    new_nodes = split_nodes_delimiter(new_nodes, "*", TextType.ITALIC)
-    new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
-    new_nodes = split_nodes_image_or_link(new_nodes)
-    return new_nodes
+    new_nodes = split_genesis_nodes_by_newline(text)
+    nested_nodes = []
+    for new_node in new_nodes:
+        new_node = [new_node]
+        new_node = split_nodes_delimiter(new_node, "**", TextType.BOLD)
+        new_node = split_nodes_delimiter(new_node, "*", TextType.ITALIC)
+        new_node = split_nodes_delimiter(new_node, "`", TextType.CODE)
+        new_node = split_nodes_image_or_link(new_node)
+        nested_nodes.append(new_node)
+    return nested_nodes

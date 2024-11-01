@@ -39,5 +39,6 @@ class ParentNode(HTMLNode):
             raise ValueError("Parameter tag is required")
         if (self.children is None) or not isinstance(self.children, list):
             raise ValueError("Parameter children is required and must be an instance of list")
+ 
         final = f"<{self.tag}{self.props_to_html()}>{''.join(map(lambda x: x.to_html(), self.children))}</{self.tag}>"
         return final
